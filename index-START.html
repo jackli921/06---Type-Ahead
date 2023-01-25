@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Type Ahead 👀</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <form class="search-form">
+    <div class="search-container">
+      <input type="text" class="search" cityholder="City or Prefecture">
+      <button>Search</button>
+    </div>
+    
+    <ul class="suggestions">
+      <li>Filter for a city or a prefecture</li>
+    </ul>
+
+    
+  </form>
+
+  <div id="image">
+
+  </div>
+
+<script>
+
+const endpoint = 'https://raw.githubusercontent.com/piuccio/open-data-jp-municipalities/master/municipalities.json';
+
+const cities = []
+fetch(endpoint)
+  .then(res => res.json())
+  .then(data => cities.push(...data))
+
+  console.log(cities)
+
+function findMatches(wordToMatch){
+  return cities.filter(city =>{
+    const regex = new RegExp(wordToMatch, 'gi')
+    return city.name_romaji.match(regex) || city.prefecture_romaji.match(regex)
+  })
+}
+
+function displayMatches(){
+  const MatchArray = findMatches(this.value)
+  console.log(MatchArray)
+  const html = MatchArray.map(city => {
+      const lat = city.lat.substring(0,6)
+      const lon = city.lon.substring(0,6) 
+      const place =(city.name_romaji).split(" ")[0]
+      const pref = (city.prefecture_romaji).split(" ")[0]
+      
+      const regex = new RegExp(this.value,'gi')
+      const cityName = place.replace(regex, `<span class="hl">${this.value}</span>`)
+      const prefName = pref.replace(regex, `<span class="hl">${this.value}</span>`)
+
+      return `
+      <li>
+        <span class="name">${cityName}, ${(prefName)}</span>
+        <span class="population">lat: ${lat} &nbsp; lon: ${lon}</span> 
+      </li>
+    `
+  }).join('')
+  suggestions.innerHTML = html
+}
+
+const searchInput = document.querySelector('.search')
+const suggestions = document.querySelector('.suggestions')
+
+searchInput.addEventListener('keyup', displayMatches)
+
+const sampleFetch = `https://serpapi.com/playground?q=Apple&tbm=isch`
+
+fetch(sampleFetch)
+  .then(res => res.json())
+  .then(data => console.table(data))
+
+</script>
+
+</body>
+</html>
